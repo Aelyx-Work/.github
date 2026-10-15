@@ -1,6 +1,6 @@
 {
-  "name": "Aelyx Node.js CI (npm)",
-  "description": "For npm projects. Installs dependencies, runs configured lint and test scripts, then builds when a build script exists.",
+  "name": "Aelyx Node.js / React / Next.js CI",
+  "description": "For Node.js and React projects. Detects npm, pnpm, or Yarn lockfiles and runs configured lint, type-check, test, and build scripts.",
   "iconName": "octicon code",
   "categories": ["JavaScript"],
   "filePatterns": ["package.json$"]
