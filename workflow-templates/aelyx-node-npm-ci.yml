@@ -1,4 +1,4 @@
-name: Aelyx Node.js CI (npm)
+name: Aelyx Node.js CI
 
 on:
   push:
@@ -14,25 +14,68 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
-    name: Install, lint, test, and build
+  quality:
+    name: Install, lint, type-check, test, and build
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
+      - name: Detect package manager from lockfile
+        id: package-manager
+        shell: bash
+        run: |
+          if [ ! -f package.json ]; then
+            echo "manager=none" >> "$GITHUB_OUTPUT"
+            exit 0
+          elif [ -f pnpm-lock.yaml ]; then
+            echo "manager=pnpm" >> "$GITHUB_OUTPUT"
+          elif [ -f yarn.lock ]; then
+            echo "manager=yarn" >> "$GITHUB_OUTPUT"
+          elif [ -f package-lock.json ] || [ -f npm-shrinkwrap.json ]; then
+            echo "manager=npm" >> "$GITHUB_OUTPUT"
+          else
+            echo "package.json exists but no supported lockfile was found. Commit package-lock.json, pnpm-lock.yaml, or yarn.lock." >&2
+            exit 1
+          fi
       - uses: actions/setup-node@v7
+        if: steps.package-manager.outputs.manager != 'none'
         with:
           node-version: 24
       - name: Install dependencies
+        if: steps.package-manager.outputs.manager != 'none'
+        env:
+          PACKAGE_MANAGER: ${{ steps.package-manager.outputs.manager }}
+        shell: bash
         run: |
-          if [ -f package-lock.json ]; then
+          if [ "$PACKAGE_MANAGER" = "npm" ]; then
             npm ci
           else
-            npm install --no-audit --no-fund
+            corepack enable
+            if [ "$PACKAGE_MANAGER" = "pnpm" ]; then
+              corepack pnpm install --frozen-lockfile
+            else
+              corepack yarn install --frozen-lockfile
+            fi
           fi
-      - name: Lint (when configured)
-        run: npm run lint --if-present
-      - name: Test (when configured)
-        run: npm test --if-present
-      - name: Build (when configured)
-        run: npm run build --if-present
+      - name: Lint, type-check, test, and build configured scripts
+        if: steps.package-manager.outputs.manager != 'none'
+        env:
+          PACKAGE_MANAGER: ${{ steps.package-manager.outputs.manager }}
+        shell: bash
+        run: |
+          run_script() {
+            local script="$1"
+            if node -e 'process.exit(require("./package.json").scripts?.[process.argv[1]] ? 0 : 1)' "$script"; then
+              if [ "$PACKAGE_MANAGER" = "npm" ]; then
+                npm run "$script"
+              else
+                corepack "$PACKAGE_MANAGER" run "$script"
+              fi
+            else
+              echo "No $script script configured; skipping."
+            fi
+          }
+          run_script lint
+          run_script typecheck
+          run_script test
+          run_script build
