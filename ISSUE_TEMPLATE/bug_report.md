@@ -1,3 +1,11 @@
+---
+name: Bug report
+about: Report a bug or unexpected behavior
+title: "[Bug]: "
+labels: ""
+assignees: ""
+---
+
 ## Describe the problem
 
 What happened?
