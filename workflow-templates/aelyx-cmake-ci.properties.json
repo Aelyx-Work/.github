@@ -1,0 +1,7 @@
+{
+  "name": "Aelyx C++ CI (CMake)",
+  "description": "For C++ projects using CMake. Configures, builds, and runs CTest when tests are registered.",
+  "iconName": "octicon code",
+  "categories": ["C++"],
+  "filePatterns": ["^CMakeLists.txt$"]
+}
