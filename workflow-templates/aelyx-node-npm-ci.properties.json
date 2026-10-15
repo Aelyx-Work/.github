@@ -1,0 +1,7 @@
+{
+  "name": "Aelyx Node.js CI (npm)",
+  "description": "For npm projects. Installs dependencies, runs configured lint and test scripts, then builds when a build script exists.",
+  "iconName": "octicon code",
+  "categories": ["JavaScript"],
+  "filePatterns": ["package.json$"]
+}
