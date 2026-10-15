@@ -1,0 +1,45 @@
+name: Aelyx Python CI
+
+on:
+  push:
+    branches: [$default-branch]
+  pull_request:
+    branches: [$default-branch]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: python-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Install, syntax-check, and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - name: Install project dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then
+            python -m pip install -r requirements.txt
+          elif [ -f pyproject.toml ]; then
+            python -m pip install .
+          fi
+      - name: Check Python syntax
+        run: python -m compileall -q .
+      - name: Run tests (when pytest is configured)
+        run: |
+          if python -c 'import pytest' 2>/dev/null; then
+            python -m pytest -q
+          elif find . -type f -name 'test_*.py' -print -quit | grep -q . || find . -type f -name '*_test.py' -print -quit | grep -q .; then
+            echo 'Test files exist but pytest is not installed. Add pytest to the project dependencies.'
+            exit 1
+          else
+            echo 'No pytest test files found; syntax check completed.'
+          fi
