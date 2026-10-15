@@ -1,0 +1,7 @@
+{
+  "name": "Aelyx Python CI",
+  "description": "For Python repositories. Checks syntax and runs pytest when tests are present.",
+  "iconName": "octicon code",
+  "categories": ["Python"],
+  "filePatterns": ["requirements.txt$", "pyproject.toml$", ".py$"]
+}
