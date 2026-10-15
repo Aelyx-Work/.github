@@ -1,3 +1,11 @@
+---
+name: Feature request
+about: Suggest a product or workflow improvement
+title: "[Feature]: "
+labels: ""
+assignees: ""
+---
+
 ## Problem
 
 What user or business problem are you trying to solve?
